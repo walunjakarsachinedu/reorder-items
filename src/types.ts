@@ -2,9 +2,9 @@ import type { Area } from "drag-and-drop-plugin";
 
 export type ReorderHandler = (event: {
   /** element on which we are dropping. */
-  dropItemId: number, 
+  dropItemId: string, 
   /** element which we are dropping. */
-  dragItemId: number, 
+  dragItemId: string, 
   pos: Area, 
   draggedElement: HTMLElement|null, 
   dragCopy: HTMLElement|null
