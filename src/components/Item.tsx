@@ -17,10 +17,11 @@ function Item({ id, onItemInsert }: ItemProps) {
     el.getDragData = () => id;
 
     const swdDropHandler = (ev: CustomEvent<DropEventDetail>) => {
-      if(isDraggableWithGetter(ev.detail.target)) {
-        const data = ev.detail.target.getDragData();
+      const { target, dropPos, dragCopy } = ev.detail;
+      if(isDraggableWithGetter(target)) {
+        const data = target.getDragData();
         if(typeof data != "number") return;
-        onItemInsert?.(id, data, ev.detail.dropPos);
+        onItemInsert?.({dropItemId: id, dragItemId: data, pos: dropPos, draggedElement: target, dragCopy});
       }
     };
     el?.addEventListener("swd-drop", swdDropHandler);

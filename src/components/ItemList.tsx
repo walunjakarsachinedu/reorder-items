@@ -20,32 +20,35 @@ function ItemList() {
     if(!flipState) return;
 
     Flip.from(flipState, {
-      targets: ".item, .btn",
+      targets: q(".item, .btn"),
       duration: 0.5,
       ease: "power1.inOut",
       stagger: 0.02,
       scale: true,
-      prune: true
+      prune: true,
     });
   }, [flipState]);
 
 
-  const reOrderItems: ReorderHandler = (itemId, dropItemId, pos) => {
+  const reOrderItems: ReorderHandler = ({dropItemId, dragItemId, pos, dragCopy, draggedElement}) => {
     const next = [...items];
-    const dropIdx = next.indexOf(dropItemId);
-    const anchorIdx = next.indexOf(itemId);
+    const dragItemIdx = next.indexOf(dragItemId);
+    const dropItemIdx = next.indexOf(dropItemId);
+    const insertAt = pos === "hr" ? dropItemIdx + 1 : dropItemIdx;
 
-    if (dropIdx === -1 || anchorIdx == -1) return;
-
-    const insertAt = pos === "hr" ? anchorIdx + 1 : anchorIdx;
-
-    if(dropIdx == anchorIdx) return;
+    // skip re-order for dropping in same position
+    if(
+      dragItemIdx == -1 || dropItemIdx == -1 || 
+      dragItemIdx == dropItemIdx || 
+      dragItemIdx == insertAt || 
+      dragItemIdx+1 == dropItemIdx && pos == "hl"
+    ) return;
     
     setSortOrder(null);
-    next.splice(insertAt, 0, dropItemId);
-    next.splice(dropIdx > insertAt ? dropIdx + 1 : dropIdx, 1);
+    next.splice(insertAt, 0, dragItemId);
+    next.splice(dragItemIdx > insertAt ? dragItemIdx + 1 : dragItemIdx, 1);
     
-    setFlipState(Flip.getState(q(".item")));
+    setFlipState(Flip.getState([...q(".item").filter(item => item != draggedElement), dragCopy]));
     setItems(next);
   }
 
@@ -66,13 +69,15 @@ function ItemList() {
   }
 
   return (
-    <div ref={containerRef} className="center">
-        <button className="btn" onClick={sortLayout}>
-          sort items { sortOrder && (sortOrder == "asc" ? "↑" : "↓") }
-        </button>
-        <button className="btn" onClick={toggleLayout}>toggle layout</button>
-      <div className={layout} data-swd-space>
-        {itemList}
+    <div className="center">
+      <div ref={containerRef} className="item-list">
+          <button className="btn" onClick={sortLayout}>
+            sort items <b>{ sortOrder && (sortOrder == "asc" ? "↑" : "↓") }</b>
+          </button>
+          <button className="btn" onClick={toggleLayout}>toggle layout</button>
+        <div className={layout} data-swd-space>
+          {itemList}
+        </div>
       </div>
     </div>
   );
