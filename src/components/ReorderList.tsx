@@ -1,13 +1,43 @@
-import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { Flip } from "gsap/all";
-import { useImperativeHandle, useRef, useState, type ReactNode } from "react";
+import { useImperativeHandle, useLayoutEffect, useRef, type ReactNode } from "react";
 import type { ReorderHandler } from "../types";
 import { ReorderItem } from "./ReorderItem";
 
+
+// TODO: remove need to call batch.getState() after scheduling animations
+
 export type ReorderListRef = {
-  /** record state to animate changes in item list. */
-  recordItemState: () => void
+  /** note: make sure to call batch.getState(); after schduleing all animation. */
+  scheduleListAnimation: () => void;
+  /** schedule animation of element from this component with element in list. 
+   * 
+   * note: make sure to call batch.getState(); after schduleing all animation.
+  */
+  scheduleAnimationForSelector: (targetGetter: () => gsap.DOMTarget, targetToAnimate?: () => gsap.DOMTarget) => void;
+}
+
+export const flipBatchName = "animate-reorder";
+
+const scheduleAnimationForSelector = (targetGetter: () => gsap.DOMTarget, targetToAnimate?: () => gsap.DOMTarget) => {
+  const batch = Flip.batch(flipBatchName);
+  batch.add({
+    getState: () => {
+      return Flip.getState(targetGetter());
+    },
+    animate: (self) => {
+      if (!self.state) return;
+      Flip.from(self.state, {
+        targets: (targetToAnimate ?? targetGetter)(),
+        duration: 0.5,
+        ease: "power1.inOut",
+        stagger: 0.02,
+        scale: true,
+        prune: true,
+      });
+    },
+    once: true
+  });
 }
 
 type ItemWithId = { id: string };
@@ -25,28 +55,19 @@ type Props<T extends ItemWithId> = {
 function ReorderList<T extends ItemWithId>({ items, renderItem, className, itemClassName, onReorder, ref }: Props<T>) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const q = gsap.utils.selector(containerRef);
-  const [flipState, setFlipState] = useState<Flip.FlipState | null>(null);
+  const batch = Flip.batch(flipBatchName);
 
-
-  useGSAP(() => {
-    if (!flipState) return;
-
-    Flip.from(flipState, {
-      targets: q(".item"),
-      duration: 0.5,
-      ease: "power1.inOut",
-      stagger: 0.02,
-      scale: true,
-      prune: true,
-    });
-  }, [flipState]);
+  useLayoutEffect(() => {
+    batch.run(true);
+  })
 
   // expose method to parent
   useImperativeHandle(ref, () => ({
-    recordItemState: () => {
-      setFlipState(Flip.getState([...q(".item")]));
-    }
-  }));
+    scheduleListAnimation: () => {
+      scheduleAnimationForSelector(() => q(".item"));
+    },
+    scheduleAnimationForSelector
+  }), [q]);
 
 
   const reOrderItems: ReorderHandler = ({ dropItemId, dragItemId, pos, dragCopy, draggedElement }) => {
@@ -70,11 +91,14 @@ function ReorderList<T extends ItemWithId>({ items, renderItem, className, itemC
     next.splice(insertAt, 0, dragItem);
     next.splice(dragItemIdx > insertAt ? dragItemIdx + 1 : dragItemIdx, 1);
 
-    setFlipState(Flip.getState([...q(".item").filter(item => item != draggedElement), dragCopy]));
+    scheduleAnimationForSelector(
+      () => [...q(".item").filter(item => item != draggedElement), dragCopy],
+      () => q(".item"),
+    );
+    batch.getState();
+
     onReorder(next);
   }
-
-  const recordFliptState = () => setFlipState(Flip.getState([...q(".item")]));
 
   const itemList = items.map((item) => (
     <ReorderItem key={item.id} id={item.id} onItemInsert={reOrderItems} className={itemClassName}>
