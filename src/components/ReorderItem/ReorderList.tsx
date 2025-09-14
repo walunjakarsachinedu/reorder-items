@@ -1,7 +1,7 @@
 import { Flip } from "gsap/all";
 import { useImperativeHandle, useLayoutEffect, useRef, type ReactNode, type Ref, type RefObject } from "react";
-import type { ReorderHandler } from "../types";
 import { ReorderItem } from "./ReorderItem";
+import type { ReorderHandler } from "../../types";
 
 
 // TODO: remove need to call batch.getState() after scheduling animations

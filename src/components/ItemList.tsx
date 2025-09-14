@@ -1,8 +1,8 @@
 import gsap from "gsap";
 import { useRef, useState } from "react";
 import "./ItemList.css";
-import { flipBatchName, ReorderList, type ReorderListRef } from "./ReorderList";
 import { Flip } from "gsap/all";
+import { flipBatchName, ReorderList, type ReorderListRef } from "./ReorderItem/ReorderList";
 
 
 function ItemList() {

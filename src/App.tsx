@@ -1,6 +1,6 @@
 import './App.css';
 import { ItemList } from "./components/ItemList";
-import PersonTxs from './PersonTxs';
+import PersonTxs from './components/PersonTxs';
 import { registerPlugins } from './plugin-registration';
 
 

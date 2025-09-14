@@ -1,6 +1,6 @@
 import { isDraggableWithGetter, type DraggableWithGetter, type DropEventDetail } from "drag-and-drop-plugin";
 import { useEffect, useLayoutEffect, type ReactNode, type RefObject } from "react";
-import type { ReorderHandler } from "../types";
+import type { ReorderHandler } from "../../types";
 
 
 type Props = {

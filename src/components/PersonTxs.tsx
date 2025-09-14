@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { ReorderList } from "./components/ReorderList";
+import { ReorderList } from "./ReorderItem/ReorderList";
 
 type Item = { id: string; name: string };
 
