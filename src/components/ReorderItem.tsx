@@ -1,5 +1,5 @@
 import { isDraggableWithGetter, type DraggableWithGetter, type DropEventDetail } from "drag-and-drop-plugin";
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, type ReactNode, type RefObject } from "react";
 import type { ReorderHandler } from "../types";
 
 
@@ -7,14 +7,25 @@ type Props = {
   id: string;
   onItemInsert?: ReorderHandler;
   children: ReactNode;
-  className?: string;
+  itemRefs: RefObject<{ [id in string]: HTMLElement | null }>,
 }
 
-function ReorderItem({ id, onItemInsert, children, className }: Props) {
-  const ref = useRef<HTMLDivElement | null>(null);
+function ReorderItem({ id, onItemInsert, children, itemRefs }: Props) {
+
+  useLayoutEffect(() => {
+    const elRef = itemRefs.current[id];
+    if (!elRef) return;
+
+    elRef.dataset.swdFlipId = `item-${id}`;
+    elRef.dataset.swdTargets = `item`;
+    elRef.dataset.swdZones = `item`;
+  }, [id, itemRefs]);
 
   useEffect(() => {
-    const el = (ref.current as unknown) as DraggableWithGetter<string>;
+    const elRef = itemRefs.current[id];
+    if (!elRef) return;
+
+    const el = (elRef as unknown) as DraggableWithGetter<string>;
     el.getDragData = () => id;
 
     const swdDropHandler = (ev: CustomEvent<DropEventDetail>) => {
@@ -29,20 +40,9 @@ function ReorderItem({ id, onItemInsert, children, className }: Props) {
     return () => {
       el?.removeEventListener("swd-drop", swdDropHandler);
     }
-  }, [id, onItemInsert]);
+  }, [id, onItemInsert, itemRefs]);
 
-  return (
-    <div
-      ref={ref}
-      key={id}
-      className={`item ${className}`}
-      data-flip-id={`item-${id}`}
-      data-swd-targets="item"
-      data-swd-zones="item"
-    >
-      {children}
-    </div>
-  );
+  return <>{children}</>;
 }
 
 export { ReorderItem };

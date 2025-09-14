@@ -15,3 +15,17 @@
   margin: 10px;
   padding: 10px 20px;
 }
+
+
+.center-h {
+  display: flex;
+  width: 100vw;
+  justify-content: center;
+}
+.d-flex {
+  display: flex;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}

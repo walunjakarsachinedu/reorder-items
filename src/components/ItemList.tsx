@@ -11,6 +11,8 @@ function ItemList() {
   const q = gsap.utils.selector(containerRef);
   const batch = Flip.batch(flipBatchName);
 
+  const itemRefs = useRef<{ [id in string]: HTMLElement | null }>({});
+
   const [items, setItems] = useState<{ id: string, key: number }[]>([1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(id => ({ id: id.toString(), key: id })));
   const [layout, setLayout] = useState<"flex-row-wrap" | "flex-column-wrap">("flex-row-wrap");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc" | null>("asc");
@@ -41,8 +43,18 @@ function ItemList() {
           ref={ref}
           items={items}
           className={layout}
+          itemRefs={itemRefs}
           onReorder={items => setItems(items)}
-          renderItem={item => <div>Item {item.id}</div>}
+          renderItem={item => <div
+            ref={(node) => { itemRefs.current[item.id] = node; }}
+            data-swd-targets="item"
+            data-swd-zones="item"
+            data-swd-target-handle="handle"
+            className="item"
+          >
+            <div >Item {item.id}</div>
+            <div data-swd-handle="handle">handle</div>
+          </div>}
         ></ReorderList>
       </div>
     </div>
